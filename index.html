@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ナブラ演算子ゲーム</title>
+<meta name="description" content="微分・積分・極限・逆関数で相手の場を 0 次元にする、ナブラ演算子ゲームの CPU 対戦版（非公式ファンメイド）">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,500;0,700;1,500&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas class="fxc" id="fxCanvas" aria-hidden="true"></canvas>
+<div class="fxflash" id="fxFlash" aria-hidden="true"></div>
+<div class="fxl" id="fxLayer" aria-hidden="true"></div>
+<div class="wrap">
+  <header>
+    <h1>ナブラ演算子ゲーム</h1>
+    <div class="sub">相手の場を 0 次元にしたら勝ち</div>
+  <details class="rules" id="rules">
+      <summary class="btn">ルール</summary>
+      <div class="rbody">
+      <p>東大生が考案したカードゲーム「ナブラ演算子ゲーム」の公式ルールをもとにした、CPU 対戦版です。</p>
+      <ul>
+        <li>お互いの場には最初に基底 <span class="m">1, <i>x</i>, <i>x</i>²</span> が置かれています。基底の数がその場の<b>次元</b>です。</li>
+        <li>手札は 7 枚。1 ターンに 1 回だけ操作をして、使った分を山札から補充します。何もせずにターンを終えることはできません。</li>
+        <li>操作は自分の場にも相手の場にも使えます。</li>
+        <li>基底は <b>0 になる</b>、<b>±∞ に発散する</b>、<b>他の基底と線形従属になる</b> と消えます。</li>
+        <li>相手の場を 0 次元にしたら勝ち。山札が尽きたら次元の大きいほうが勝ち（同じなら引き分け）。</li>
+      </ul>
+      <p><b>操作の種類</b></p>
+      <ul>
+        <li><b>関数カード</b>（1, <i>x</i>, <i>x</i>², sin <i>x</i>, cos <i>x</i>, <i>e</i><sup><i>x</i></sup>）を場に追加。線形従属になる基底は追加できない。0 は × と組み合わせて使う</li>
+        <li><b>∇</b> は片方の場の基底すべてを 1 回、<b>Δ</b> は 2 回微分する</li>
+        <li><b>d/d<i>x</i></b>・<b>∫</b> は基底 1 つを微分・積分。同じカードを複数枚重ねると、その回数だけ繰り返す</li>
+        <li><b>×</b>・<b>÷</b> は手札の関数カード 1 枚と組み合わせて、基底に掛ける・割る</li>
+        <li><b>極限</b>（<i>x</i>→+∞, −∞, 0、liminf, limsup）を基底に取る。有限値なら定数関数に、±∞ なら消滅</li>
+        <li><b>√</b>・<b>log</b>（自然対数）・<b><i>f</i>⁻¹</b>（逆関数）を基底に適用</li>
+      </ul>
+      <p><b>反則</b>：定義域がほとんど空になる操作、極限が定まらない操作、定義域が続かない方向への極限、先手の最初のターンの Δ。この版では反則になる操作は出せないようにしています。</p>
+      <p><b>この版での注意</b>：カード構成は既存の Web 移植版の枚数を参考にしたもので、実物と違う可能性があります。式で表せない積分や逆関数は出せません。極限は数値計算で判定しています。出せる操作が 1 つもないときだけ「手詰まり」で 1 枚捨てられます。</p>
+      <p>公式サイト：<a href="https://nablagame.com/" target="_blank" rel="noopener">nablagame.com</a></p>
+      </div>
+    </details>
+  </header>
+  <div class="status"><span class="turn" id="turnInfo"></span><span>山札 <b id="deckN">0</b> 枚</span></div>
+
+  <div class="scene" id="scene"><div class="fitbox" id="fitbox">
+    <div class="table" id="table">
+      <section class="side" id="sideCpu">
+        <div class="sh">CPU の場 <span class="backs" id="cpuBacks"></span><span class="dim">次元 <b id="dimCpu">3</b></span></div>
+        <div class="bases" id="basesCpu"></div>
+      </section>
+      <div class="mid" aria-hidden="true">
+        <div class="pile"><div class="stack" id="deckStack"></div><span>山札</span></div>
+        <div class="axis">∇</div>
+        <div class="pile"><div class="stack grave" id="graveStack"></div><span>捨て札</span></div>
+      </div>
+      <section class="side mine" id="sideYou">
+        <div class="sh">あなたの場<span class="dim">次元 <b id="dimYou">3</b></span></div>
+        <div class="bases" id="basesYou"></div>
+      </section>
+    </div>
+  </div></div>
+
+  <section class="calc" id="calc" aria-live="polite"></section>
+
+  <div class="hint" id="hint" aria-live="polite"></div>
+
+  <div class="over" id="over" hidden>
+    <h3 id="overT"></h3>
+    <div class="sub" id="overS"></div>
+    <button class="btn act" id="again">もう一度</button>
+  </div>
+
+  <div class="handhead">
+    <h2>あなたの手札</h2>
+    <div class="btns">
+      <button class="btn" id="clearSel">選択解除</button>
+      <button class="btn act" id="stuckBtn" hidden>手詰まり：1枚捨てる</button>
+      <button class="btn" id="fxBtn" aria-pressed="true">激しいエフェクト：ON</button>
+      <button class="btn" id="newBtn">新しいゲーム</button>
+    </div>
+  </div>
+  <div class="hand" id="hand"></div>
+  <div class="legend">
+    <span style="--c:var(--basis)">関数カード</span><span style="--c:var(--calc)">微積分</span><span style="--c:var(--alg)">代数</span><span style="--c:var(--lim)">極限</span>
+  </div>
+
+
+</div>
+<script src="js/engine.js"></script>
+<script src="js/game.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
