@@ -181,16 +181,20 @@ function commit(st,who,idx,cs,r){
   st.lastDraw={who,n:h.length-before};
   st.last={who,cs,steps:r.steps};
   st.turnNo++;
-  if(!st.fields.cpu.length)st.over={win:'you',why:'CPU の場が 0 次元になりました'};
-  else if(!st.fields.you.length)st.over={win:'cpu',why:'あなたの場が 0 次元になりました'};
-  else if(!st.deck.length){const a=st.fields.you.length,b=st.fields.cpu.length;
-    st.over={win:a>b?'you':b>a?'cpu':'draw',why:`山札が尽きました（次元 ${a} 対 ${b}）`};}
+  if(!st.fields.cpu.length)st.over={win:'you',reason:'zero'};
+  else if(!st.fields.you.length)st.over={win:'cpu',reason:'zero'};
+  else if(!st.deck.length)deckOut(st);
   st.turn=other(who);
+}
+function deckOut(st){const a=st.fields.you.length,b=st.fields.cpu.length;st.over={win:a>b?'you':b>a?'cpu':'draw',reason:'deck',dims:{you:a,cpu:b}};}
+function overText(o){
+  if(o.reason==='zero')return `${WHO[o.win==='you'?'cpu':'you']}の場が 0 次元になりました`;
+  return `山札が尽きました（次元 ${o.dims.you} 対 ${o.dims.cpu}）`;
 }
 function discardOne(st,who,i){
   const h=st.hands[who];st.grave.push(h.splice(i,1)[0]);st.lastDraw={who,n:0};if(st.deck.length){h.push(st.deck.pop());st.lastDraw.n=1;}
   st.last={who,cs:[],steps:[`${WHO[who]}は出せるカードがないので1枚捨てて引いた`]};
   st.turnNo++;
-  if(!st.deck.length){const a=st.fields.you.length,b=st.fields.cpu.length;st.over={win:a>b?'you':b>a?'cpu':'draw',why:`山札が尽きました（次元 ${a} 対 ${b}）`};}
+  if(!st.deck.length)deckOut(st);
   st.turn=other(who);
 }

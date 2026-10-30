@@ -264,18 +264,21 @@ function limitOf(e,kind){
 const SUPD='⁰¹²³⁴⁵⁶⁷⁸⁹';
 const supInt=n=>String(n).split('').map(c=>SUPD[c]).join('');
 const fracT=v=>v.d===1?String(Math.abs(v.n)):Math.abs(v.n)+'/'+v.d;
+const FR=(a,b)=>`<span class="fr"><span class="nu">${a}</span><span class="de">${b}</span></span>`;
+const RT=a=>`<span class="rt"><span class="rs">√</span><span class="rad">${a}</span></span>`;
+const fracH=v=>v.d===1?String(Math.abs(v.n)):FR(Math.abs(v.n),v.d);
 const FNAME={sin:'sin',cos:'cos',ln:'log',asin:'arcsin',acos:'arccos'};
 function simpleArg(a){return a.k==='x'||a.k==='num'&&a.v.n>=0&&a.v.d===1||(a.k==='mul'&&a.a.length===2&&a.a[0].k==='num'&&a.a[0].v.d===1&&a.a[0].v.n>0&&a.a[1].k==='x');}
 function showFactor(f){
   switch(f.k){
     case 'x':return '<i>x</i>';
-    case 'num':return (f.v.n<0?'−':'')+fracT(f.v);
+    case 'num':return (f.v.n<0?'−':'')+fracH(f.v);
     case 'add':return '('+H(f)+')';
     case 'pow':{
-      if(f.e.n===1&&f.e.d===2)return '√'+(f.b.k==='x'?'<i>x</i>':'('+H(f.b)+')');
+      if(f.e.n===1&&f.e.d===2)return RT(H(f.b));
       const base=f.b.k==='x'?'<i>x</i>':'('+H(f.b)+')';
       if(fint(f.e)&&f.e.n>0)return base+supInt(f.e.n);
-      return base+'<sup>'+(f.e.n<0?'−':'')+fracT(f.e)+'</sup>';}
+      return base+'<sup>'+(f.e.n<0?'−':'')+fracH(f.e)+'</sup>';}
     case 'fn':
       if(f.f==='exp')return '<i>e</i><sup>'+H(f.a)+'</sup>';
       return FNAME[f.f]+(simpleArg(f.a)?' '+H(f.a):'('+H(f.a)+')');
@@ -285,16 +288,17 @@ const needsSep=f=>(f.k==='fn'&&f.f!=='exp')||(f.k==='pow'&&f.e.n===1&&f.e.d===2)
 function joinF(fs){return fs.map((f,i)=>(i>0&&(needsSep(f)||needsSep(fs[i-1]))?' ':'')+showFactor(f)).join('');}
 function showTerm(t){
   const [c,r]=split(t);
-  if(!r)return fracT(c);
+  if(!r)return fracH(c);
   const fs=r.k==='mul'?r.a:[r];const num=[],den=[];
   for(const f of fs){if(f.k==='pow'&&f.e.n<0)den.push(f.e.n===-f.e.d?f.b:Pow(f.b,fneg(f.e)));else num.push(f);}
-  let ns=joinF(num);const an=Math.abs(c.n);
+  const solo=(fs,cd)=>fs.length===1&&fs[0].k==='add'&&cd===1;
+  let ns=solo(num,Math.abs(c.n))?H(num[0]):joinF(num);const an=Math.abs(c.n);
   if(an!==1)ns=an+(num.length&&needsSep(num[0])?' ':'')+ns;
   if(!ns)ns='1';
-  let ds=joinF(den);const dc=den.length+(c.d!==1?1:0);
+  let ds=solo(den,c.d)?H(den[0]):joinF(den);const dc=den.length+(c.d!==1?1:0);
   if(c.d!==1)ds=c.d+(den.length&&needsSep(den[0])?' ':'')+ds;
   if(!ds)return ns;
-  return ns+'/'+(dc>1?'('+ds+')':ds);
+  void dc;return FR(ns,ds);
 }
 function H(e){
   if(e.k==='add')return e.a.map((t,i)=>{const neg=split(t)[0].n<0;const s=showTerm(t);return i===0?(neg?'−':'')+s:(neg?' − ':' + ')+s;}).join('');
