@@ -3,14 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Cache-Control" content="no-cache">
 <title>ナブラ演算子ゲーム</title>
 <meta name="description" content="微分・積分・極限・逆関数で相手の場を 0 次元にする、ナブラ演算子ゲームの 2〜4 人対戦版（非公式ファンメイド）">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#18263A">
+<link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ナブラ">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,500;0,700;1,500&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
 <style>
-/* base reset */
 *,*::before,*::after{box-sizing:border-box}
 :root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{margin:0}
@@ -218,7 +224,11 @@ body.modal-any .scene .table{filter:saturate(.9)}
   padding:calc(env(safe-area-inset-top,0px) + 16px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(16px,env(safe-area-inset-left,0px));
   background:color-mix(in srgb,var(--paper) 72%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .mcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 22px 20px;width:min(420px,100%);display:flex;flex-direction:column;gap:12px;align-items:stretch;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.25)}
-.mlogo{font-family:var(--math);font-size:56px;font-weight:700;line-height:1;color:var(--calc)}
+.logoimg{display:inline-block;background:url(data:image/png;base64,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) center/cover no-repeat}
+.mlogo{display:block;width:80px;height:80px;align-self:center;border-radius:18px;box-shadow:0 10px 24px rgba(14,24,40,.3)}
+.hlogo{width:36px;height:36px;border-radius:9px;vertical-align:-6px;margin-right:10px;box-shadow:0 3px 8px rgba(14,24,40,.25)}
+.install{display:flex;flex-direction:column;gap:6px;border-top:1px dashed var(--line);padding-top:10px}
+.install .msub{margin:0;font-size:12px}
 .mcard h2{margin:0;font-family:var(--math);font-size:24px}
 .mpane{display:flex;flex-direction:column;gap:10px}
 .mbtn{appearance:none;font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;display:flex;flex-direction:column;gap:2px;text-align:left;
@@ -311,13 +321,17 @@ sup .fr,sub .fr{font-size:.9em;margin:0 .04em;vertical-align:.5em}
 <div class="fxl" id="fxLayer" aria-hidden="true"></div>
 <div class="menu" id="menu" hidden>
   <div class="mcard" role="dialog" aria-modal="true" aria-labelledby="mTitle">
-    <div class="mlogo">∇</div>
+    <span class="mlogo logoimg" role="img" aria-label="ナブラ演算子ゲームのロゴ"></span>
     <h2 id="mTitle">ナブラ演算子ゲーム</h2>
     <p class="merr" id="menuErr" hidden></p>
     <div class="mpane" id="mTop">
       <label class="mname" for="nameIn">あなたの名前<input id="nameIn" maxlength="10" autocomplete="off" placeholder="プレイヤー"></label>
       <button class="mbtn" id="mCpu"><b>CPU と対戦</b><span>CPU 1〜3 人と遊ぶ</span></button>
       <button class="mbtn" id="mNet"><b>インターネット対戦</b><span>部屋コードで友だちと遊ぶ（最大 4 人）</span></button>
+      <div class="install" id="installBox" hidden>
+        <button class="btn" id="installBtn" hidden>アプリとしてインストール</button>
+        <p class="msub" id="installTip" hidden></p>
+      </div>
     </div>
     <div class="mpane" id="mCpuSetup" hidden>
       <div class="rulebox" id="cpuRules"></div>
@@ -356,7 +370,7 @@ sup .fr,sub .fr{font-size:.9em;margin:0 .04em;vertical-align:.5em}
 </div>
 <div class="wrap">
   <header>
-    <h1>ナブラ演算子ゲーム</h1>
+    <h1><span class="hlogo logoimg" aria-hidden="true"></span>ナブラ演算子ゲーム</h1>
     <div class="sub">相手の場を 0 次元にしたら勝ち（2〜4 人）</div>
   <div class="hbtns"><button class="btn" id="viewBtn">2D 表示にする</button><button class="btn" id="menuBtn">メニュー</button></div>
   <details class="rules" id="rules">
@@ -429,7 +443,7 @@ sup .fr,sub .fr{font-size:.9em;margin:0 .04em;vertical-align:.5em}
 
 </div>
 <script>
-/* build 2026-10-30 single-file */
+/* build 2026-10-31a */
 /* ===== Nabla engine: rational numbers, expression trees, calculus ===== */
 const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b];}return a||1;};
 function F(n,d=1){if(d<0){n=-n;d=-d;}const g=gcd(n,d);return {n:n/g,d:d/g};}
@@ -1874,6 +1888,22 @@ document.querySelectorAll('.mBack').forEach(b=>{if(b.id!=='lobLeave')b.addEventL
 $('menuBtn').addEventListener('click',()=>showMenu());
 $('rules').addEventListener('toggle',()=>document.body.classList.toggle('modal-any',!!G.over||$('rules').open));
 
+/* ---------- app (PWA): offline + install ---------- */
+(function(){
+  let topLevel=true;try{topLevel=window.top===window;}catch(e){topLevel=false;}
+  const okHost=location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1';
+  const standalone=(()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}catch(e){return false;}})();
+  if(topLevel&&okHost&&'serviceWorker' in navigator&&document.querySelector('link[rel="manifest"]')){
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+    let promptEv=null;
+    const box=$('installBox'),btn=$('installBtn'),tip=$('installTip');
+    addEventListener('beforeinstallprompt',e=>{e.preventDefault();promptEv=e;if(!standalone){box.hidden=false;btn.hidden=false;}});
+    btn.addEventListener('click',async()=>{if(!promptEv)return;promptEv.prompt();try{await promptEv.userChoice;}catch(e){}promptEv=null;btn.hidden=true;box.hidden=true;});
+    addEventListener('appinstalled',()=>{box.hidden=true;});
+    const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    if(ios&&!standalone){box.hidden=false;tip.hidden=false;tip.textContent='アプリにするには：Safari の共有ボタン（□↑）→「ホーム画面に追加」';}
+  }
+})();
 render();applyView();
 tableIntro([{transform:'rotateX(0deg) translateY(-20px) scale(.92)',opacity:.4},{transform:'rotateX(30deg)',opacity:1}],900);
 showMenu();
