@@ -575,7 +575,7 @@ function netSend(m){try{NET&&NET.conn&&NET.conn.open&&NET.conn.send(m);}catch(e)
 function netStatus(t){const el=$('netStatus');el.textContent=t;el.hidden=!t;}
 function loadPeer(){
   if(window.Peer)return Promise.resolve();
-  return new Promise((ok,ng)=>{const s=document.createElement('script');s.src='js/peerjs.min.js';s.onload=ok;s.onerror=()=>ng(new Error('nolib'));document.head.appendChild(s);});
+  return new Promise((ok,ng)=>{const s=document.createElement('script');s.src='js/peerjs.min.js?v=1.5.4';s.onload=ok;s.onerror=()=>ng(new Error('nolib'));document.head.appendChild(s);});
 }
 const CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const mkCode=()=>Array.from({length:5},()=>CODE_CH[Math.floor(Math.random()*CODE_CH.length)]).join('');
