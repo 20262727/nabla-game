@@ -14,14 +14,45 @@
 <canvas class="fxc" id="fxCanvas" aria-hidden="true"></canvas>
 <div class="fxflash" id="fxFlash" aria-hidden="true"></div>
 <div class="fxl" id="fxLayer" aria-hidden="true"></div>
+<div class="menu" id="menu" hidden>
+  <div class="mcard" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="mlogo">∇</div>
+    <h2 id="mTitle">ナブラ演算子ゲーム</h2>
+    <p class="merr" id="menuErr" hidden></p>
+    <div class="mpane" id="mTop">
+      <button class="mbtn" id="mCpu"><b>CPU と対戦</b><span>ひとりで遊ぶ</span></button>
+      <button class="mbtn" id="mNet"><b>インターネット対戦</b><span>部屋コードで友だちと遊ぶ</span></button>
+    </div>
+    <div class="mpane" id="mOnline" hidden>
+      <button class="mbtn" id="mHost"><b>部屋を作る</b><span>部屋コードを相手に伝える</span></button>
+      <div class="mjoin">
+        <label for="codeIn">部屋に入る</label>
+        <div class="mrow"><input id="codeIn" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="例：K7QX2"><button class="btn act" id="mJoinBtn">参加</button></div>
+      </div>
+      <button class="btn mBack">戻る</button>
+    </div>
+    <div class="mpane" id="mWait" hidden>
+      <p class="msub">部屋コード</p>
+      <div class="code" id="roomCode">……</div>
+      <button class="btn" id="copyCode">コードをコピー</button>
+      <p class="msub" id="waitMsg"></p>
+      <button class="btn mBack">やめる</button>
+    </div>
+    <div class="mpane" id="mJoin" hidden>
+      <p class="msub">相手につないでいます…</p>
+      <button class="btn mBack">やめる</button>
+    </div>
+  </div>
+</div>
 <div class="wrap">
   <header>
     <h1>ナブラ演算子ゲーム</h1>
     <div class="sub">相手の場を 0 次元にしたら勝ち</div>
+  <div class="hbtns"><button class="btn" id="viewBtn">2D 表示にする</button><button class="btn" id="menuBtn">メニュー</button></div>
   <details class="rules" id="rules">
       <summary class="btn">ルール</summary>
       <div class="rbody">
-      <p>東大生が考案したカードゲーム「ナブラ演算子ゲーム」の公式ルールをもとにした、CPU 対戦版です。</p>
+      <p>東大生が考案したカードゲーム「ナブラ演算子ゲーム」の公式ルールをもとにした、CPU 対戦・インターネット対戦版です。</p>
       <ul>
         <li>お互いの場には最初に基底 <span class="m">1, <i>x</i>, <i>x</i>²</span> が置かれています。基底の数がその場の<b>次元</b>です。</li>
         <li>手札は 7 枚。1 ターンに 1 回だけ操作をして、使った分を山札から補充します。何もせずにターンを終えることはできません。</li>
@@ -49,7 +80,7 @@
   <div class="scene" id="scene"><div class="fitbox" id="fitbox">
     <div class="table" id="table">
       <section class="side" id="sideCpu">
-        <div class="sh">CPU の場 <span class="backs" id="cpuBacks"></span><span class="dim">次元 <b id="dimCpu">3</b></span></div>
+        <div class="sh"><span id="oppName">CPU の場</span> <span class="backs" id="cpuBacks"></span><span class="dim">次元 <b id="dimCpu">3</b></span></div>
         <div class="bases" id="basesCpu"></div>
       </section>
       <div class="mid" aria-hidden="true">
@@ -67,6 +98,7 @@
   <section class="calc" id="calc" aria-live="polite"></section>
 
   <div class="hint" id="hint" aria-live="polite"></div>
+  <div class="netst" id="netStatus" hidden></div>
 
   <div class="over" id="over" hidden>
     <h3 id="overT"></h3>
