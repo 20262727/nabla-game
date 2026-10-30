@@ -72,7 +72,7 @@ function simulate(st,who,cs,tg){
   L.ids=L.map((_,i)=>i);
   const fate={side,changed:kind==='side'?L.map((_,i)=>i):tg.i!==undefined?[tg.i]:[],diverged:false};
   const done=()=>({ok:true,fields,steps,fate:{...fate,ids:L.ids.slice(),removed:st.fields[side].map((_,i)=>i).filter(i=>!L.ids.includes(i))}});
-  const sn=side===who?'自分':'相手';
+  const sn=side==='you'?'あなた':WHO.cpu;
   if(kind==='add'){
     const e=S(CARDS[cs[0]].ex());
     if(dependentOn(L,e))return fail(`${H(e)} は${sn}の場の基底と線形従属なので追加できません`);

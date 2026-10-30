@@ -443,7 +443,7 @@ function endDrag(e){
 
 async function runMove(who,idx,cs,tg,r,srcRects){
   const my=gid;busy=true;
-  if(MODE==='online'&&who==='you')netSend({t:'move',idx,cs,tg:{side:sw(tg.side),i:tg.i},n:G.turnNo});
+  if(MODE==='online'&&who==='you')netSend({t:'move',idx,cs,tg:{side:tg.side,i:tg.i},n:G.turnNo});
   $('hint').textContent=hintText();$('hint').classList.remove('err');
   const fate=r.fate;
   if(!calm()){
