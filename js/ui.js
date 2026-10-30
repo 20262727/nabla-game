@@ -58,6 +58,7 @@ function render(){
   const sb=$('stuckBtn');sb.hidden=!(myTurn()&&stuck);sb.textContent=discMode?'取消':'手詰まり：1枚捨てる';
   $('clearSel').disabled=!sel.length;
   $('over').hidden=!G.over;
+  document.body.classList.toggle('modal-any',!!G.over||$('rules').open);
   if(G.over){$('overT').textContent=G.over.win==='you'?'あなたの勝ち':G.over.win==='cpu'?`${WHO.cpu} の勝ち`:'引き分け';$('overS').textContent=overText(G.over);}
 }
 
@@ -654,8 +655,8 @@ function afterTurn(){if(MODE==='online'&&NET&&NET.role==='host')netSend({t:'sync
 function menuView(v){['mTop','mOnline','mWait','mJoin'].forEach(id=>$(id).hidden=true);
   $({top:'mTop',online:'mOnline',wait:'mWait',joining:'mJoin'}[v]).hidden=false;$('menuErr').hidden=true;}
 function menuErr(t){menuView('online');$('menuErr').textContent=t;$('menuErr').hidden=false;}
-function showMenu(note){closeNet();$('menu').hidden=false;menuView('top');if(note){$('menuErr').textContent=note;$('menuErr').hidden=false;}}
-function hideMenu(){$('menu').hidden=true;}
+function showMenu(note){closeNet();$('menu').hidden=false;document.body.classList.add('modal-menu');menuView('top');if(note){$('menuErr').textContent=note;$('menuErr').hidden=false;}}
+function hideMenu(){$('menu').hidden=true;document.body.classList.remove('modal-menu');}
 $('mCpu').addEventListener('click',()=>{closeNet();hideMenu();startLocal();});
 $('mNet').addEventListener('click',()=>menuView('online'));
 $('mHost').addEventListener('click',hostRoom);
@@ -666,6 +667,7 @@ $('copyCode').addEventListener('click',()=>{const c=$('roomCode').textContent;
   if(navigator.clipboard)navigator.clipboard.writeText(c).then(()=>{$('copyCode').textContent='コピーしました';},()=>{});});
 $('menuBtn').addEventListener('click',()=>showMenu());
 
+$('rules').addEventListener('toggle',()=>document.body.classList.toggle('modal-any',!!G.over||$('rules').open));
 render();applyView();
 tableIntro([{transform:'rotateX(0deg) translateY(-20px) scale(.92)',opacity:.4},{transform:'rotateX(30deg)',opacity:1}],900);
 showMenu();
