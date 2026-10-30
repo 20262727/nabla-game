@@ -30,9 +30,12 @@ function render(){
   $('turnInfo').textContent=G.over?'ゲーム終了':G.turn==='you'?`あなたの番（${G.turnNo+1} 手目）`:`${WHO.cpu} の番`;
   $('oppName').textContent=WHO.cpu+' の場';
   $('deckN').textContent=G.deck.length;
-  const pileHTML=(n,label)=>{const k=Math.min(14,Math.ceil(n/5));let s='';for(let j=0;j<k;j++)s+=`<i style="transform:translateZ(${j*2.2}px)"></i>`;return s+(n?`<b style="transform:translateZ(${k*2.2+1}px)">${label}</b>`:'');};
-  $('deckStack').innerHTML=pileHTML(G.deck.length,G.deck.length);
-  $('graveStack').innerHTML=pileHTML(G.grave.length,G.grave.length?face(G.grave[G.grave.length-1]):'');
+  const layers=n=>{const k=Math.min(10,Math.ceil(n/6));let s='';for(let j=0;j<k;j++)s+=`<i style="transform:translateZ(${j*1.3}px)"></i>`;return {s,z:k*1.3+.5};};
+  {const L=layers(G.deck.length);$('deckStack').innerHTML=L.s+(G.deck.length?`<div class="top" style="transform:translateZ(${L.z}px)"><b>${G.deck.length}</b></div>`:'');}
+  {const n=G.grave.length,L=layers(Math.max(0,n-1));let top='';
+   if(n){const c=G.grave[n-1],d=CARDS[c];const txt=d.face.replace(/<[^>]+>/g,'');
+     top=`<div class="top" style="--c:${CATC[d.cat]};transform:translateZ(${L.z}px) rotate(${((n*37)%9)-4}deg)"><span class="tf${txt.length>3||d.sub?' sm':''}">${d.face}</span>${d.sub?`<span class="ts">${d.sub}</span>`:''}</div>`;}
+   $('graveStack').innerHTML=L.s+top;$('graveN').textContent=n;}
   $('dimCpu').textContent=G.fields.cpu.length;$('dimYou').textContent=G.fields.you.length;
   $('cpuBacks').innerHTML=G.hands.cpu.map((_,i)=>`<span class="back" id="back-${i}"></span>`).join('');
   const k=myTurn()?kind():null;
@@ -488,10 +491,11 @@ async function runMove(who,idx,cs,tg,r,srcRects){
 }
 function stamp(){if(G.last)G.last.id=++seq;}
 function next(){
-  if(G.over)return;
+  if(G.over){stopClock();return;}
   const my=gid;
   if(MODE==='online'){
     if(pendingSync){applySync(pendingSync);pendingSync=null;}
+    startClock();
     if(G.turn==='cpu'){busy=false;render();pump();}
     else setTimeout(()=>{if(my!==gid)return;stuck=!hasLegal(G,'you');render();},30);
     return;
@@ -541,20 +545,31 @@ $('viewBtn').addEventListener('click',()=>{FLAT=!FLAT;try{localStorage.setItem('
 function tableIntro(kf,ms){if(!calm()&&!FLAT)$('table').animate(kf,{duration:ms,easing:'cubic-bezier(.2,.8,.2,1)'});}
 
 /* ---------- game reset ---------- */
-function resetUI(){gid++;layer().innerHTML='';parts=[];rings=[];sel=[];err=false;busy=false;stuck=false;discMode=false;shown=-1;inbox=[];pendingSync=null;}
+function resetUI(){clock=null;gid++;layer().innerHTML='';parts=[];rings=[];sel=[];err=false;busy=false;stuck=false;discMode=false;shown=-1;inbox=[];pendingSync=null;}
 function startLocal(){
-  MODE='cpu';WHO.cpu='CPU';resetUI();G=newGame();render();
+  MODE='cpu';WHO.cpu='CPU';resetUI();G=newGame();reqUI();drawClock();render();
   tableIntro([{transform:'rotateX(60deg) scale(.95)'},{transform:'rotateX(30deg)'}],600);
 }
 const restart=()=>{
   if(MODE==='online'){
     if(!NET||!NET.conn){showMenu();return;}
-    if(NET.role==='host')hostNewGame();
-    else{netSend({t:'rematch'});netStatus('ホストに再戦をお願いしました…');}
+    NET.myReq=!NET.myReq;
+    netSend({t:'newreq',on:NET.myReq});
+    reqUI();
+    if(NET.role==='host'&&NET.myReq&&NET.peerReq)hostNewGame();
     return;
   }
   startLocal();
 };
+function reqUI(){
+  const nb=$('newBtn'),ag=$('again');
+  if(MODE!=='online'||!NET){nb.textContent='新しいゲーム';ag.textContent='もう一度';nb.classList.remove('act','req');netStatus('');return;}
+  const me=!!NET.myReq,op=!!NET.peerReq;
+  nb.textContent=me?'新しいゲームの要求を取り消す':op?'新しいゲームに同意する':'新しいゲームを要求';
+  ag.textContent=me?'相手の同意を待っています（取り消す）':op?'同意して新しいゲームへ':'もう一度（相手に要求）';
+  nb.classList.toggle('act',op&&!me);nb.classList.toggle('req',me);
+  netStatus(me&&!op?'新しいゲームを要求しました。相手が「新しいゲーム」を押すと始まります。':op&&!me?'相手が新しいゲームを要求しています。「新しいゲーム」を押すと始まります。':'');
+}
 $('newBtn').addEventListener('click',restart);
 $('again').addEventListener('click',restart);
 
@@ -622,9 +637,10 @@ function wire(conn){
   conn.on('error',()=>{});
 }
 function hostNewGame(){
+  if(NET){NET.myReq=false;NET.peerReq=false;}
   MODE='online';WHO.cpu='相手';resetUI();G=newGame();
   if(Math.random()<.5)G.turn='cpu';
-  netSend({t:'start',st:G});netStatus('');
+  netSend({t:'start',st:G});reqUI();
   render();tableIntro([{transform:'rotateX(60deg) scale(.95)'},{transform:'rotateX(30deg)'}],600);
   slamTurn();next();
 }
@@ -633,9 +649,12 @@ function applySync(st){const m=NET&&NET.role==='guest'?mirror(st):st;if(stateKey
 function onNet(m){
   if(!m||!m.t)return;
   if(m.t==='full'){menuErr('その部屋はもう対戦中です。');closeNet();return;}
-  if(m.t==='start'){MODE='online';WHO.cpu='相手';resetUI();G=mirror(m.st);hideMenu();netStatus('');render();
+  if(m.t==='start'){if(NET){NET.myReq=false;NET.peerReq=false;}MODE='online';WHO.cpu='相手';resetUI();G=mirror(m.st);hideMenu();reqUI();render();
     tableIntro([{transform:'rotateX(60deg) scale(.95)'},{transform:'rotateX(30deg)'}],600);slamTurn();next();return;}
-  if(m.t==='rematch'){if(NET&&NET.role==='host')hostNewGame();return;}
+  if(m.t==='rematch'||m.t==='newreq'){if(!NET)return;NET.peerReq=m.t==='rematch'?true:!!m.on;reqUI();
+    if(NET.peerReq&&!NET.myReq&&fxOn()){const p=mid($('newBtn').getBoundingClientRect());ring(p.x,p.y,tok('--lim'),70,5,.5);}
+    if(NET.role==='host'&&NET.myReq&&NET.peerReq)hostNewGame();return;}
+  if(m.t==='forced'){if(G.turn==='you'&&!G.over&&m.n===G.turnNo&&!busy)timeoutDiscard('you',m.i,false);return;}
   if(m.t==='needsync'){if(NET&&NET.role==='host')netSend({t:'sync',st:G});return;}
   if(m.t==='sync'){if(busy||inbox.length)pendingSync=m.st;else applySync(m.st);return;}
   if(m.t==='move'||m.t==='discard'){inbox.push(m);pump();}
@@ -643,12 +662,57 @@ function onNet(m){
 function pump(){
   if(MODE!=='online'||busy||!inbox.length||G.turn!=='cpu'||G.over)return;
   const m=inbox.shift();
+  if(m.n!==undefined&&m.n!==G.turnNo){if(NET&&NET.role==='host')netSend({t:'sync',st:G});else netSend({t:'needsync'});pump();return;}
+  if(m.t==='discard'&&m.timeout){timeoutDiscard('cpu',m.i,false);return;}
   if(m.t==='discard'){discardOne(G,'cpu',m.i);stamp();render();if(!calm())dealFx();afterTurn();next();return;}
   const tg={side:sw(m.tg.side)};if(m.tg.i!==undefined)tg.i=m.tg.i;
   const r=simulate(G,'cpu',m.cs,tg);
   if(!r.ok){if(NET&&NET.role==='host')netSend({t:'sync',st:G});else netSend({t:'needsync'});return;}
   runMove('cpu',m.idx,m.cs,tg,r);
 }
+/* ---------- 60-second turn clock (online) ---------- */
+const TURN_SEC=window.__TURN_SEC||60,GRACE=6;
+let clock=null;
+function startClock(){
+  if(MODE!=='online'||G.over){stopClock();return;}
+  const key=G.turnNo+':'+G.turn;
+  if(clock&&clock.key===key)return;
+  clock={key,who:G.turn,n:G.turnNo,deadline:Date.now()+TURN_SEC*1000,fired:false};
+  drawClock();
+}
+function stopClock(){clock=null;drawClock();}
+function drawClock(){
+  const el=$('clock');if(!el)return;
+  if(!clock||MODE!=='online'||G.over){el.hidden=true;return;}
+  const left=Math.max(0,Math.ceil((clock.deadline-Date.now())/1000));
+  el.hidden=false;
+  el.innerHTML=`<span class="clk-who">${clock.who==='you'?'あなた':'相手'}</span> 残り <b>${left}</b> 秒<i style="--p:${left/TURN_SEC}"></i>`;
+  el.classList.toggle('warn',left<=10);el.classList.toggle('mine',clock.who==='you');
+}
+function cancelAnyDrag(){try{if(drag&&drag.started)cancelDrag();}catch(e){}drag=null;}
+function timeoutDiscard(who,i,send){
+  if(G.over||G.turn!==who)return;
+  if(who==='you'){cancelAnyDrag();sel=[];discMode=false;}
+  const h=G.hands[who];if(!h.length)return;
+  if(i===undefined||i<0||i>=h.length)i=Math.floor(Math.random()*h.length);
+  if(send)netSend(who==='you'?{t:'discard',i,n:G.turnNo,timeout:true}:{t:'forced',i,n:G.turnNo});
+  discardOne(G,who,i);
+  if(G.last)G.last.steps=[`<b class="gone">時間切れ！</b> ${WHO[who]}は手札を1枚捨てて引いた（${TURN_SEC}秒以内に出せなかった）`];
+  stamp();stuck=false;render();
+  if(!calm()){dealFx();const p=mid($('table').getBoundingClientRect());slam('時間切れ！',tok('--gone'),p.x,p.y,false);shakeFx(8,260);}
+  afterTurn();next();
+}
+setInterval(()=>{
+  if(!clock)return;
+  if(MODE!=='online'||G.over){stopClock();return;}
+  drawClock();
+  const now=Date.now();
+  if(busy||clock.fired)return;
+  if(clock.who==='you'&&G.turn==='you'&&now>=clock.deadline&&!window.__frozen){clock.fired=true;timeoutDiscard('you',undefined,true);}
+  else if(clock.who==='cpu'&&G.turn==='cpu'&&!inbox.length&&now>=clock.deadline+GRACE*1000){clock.fired=true;timeoutDiscard('cpu',undefined,true);}
+},250);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&clock)drawClock();});
+
 function afterTurn(){if(MODE==='online'&&NET&&NET.role==='host')netSend({t:'sync',st:G});}
 
 /* ---------- menu ---------- */
