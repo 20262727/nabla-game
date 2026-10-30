@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=STIX+Two+Text:ital,wght@0,500;0,700;1,500&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
-<link rel="stylesheet" href="css/style.css?v=20261030c">
+<link rel="stylesheet" href="css/style.css?v=20261030e">
 </head>
 <body>
 <canvas class="fxc" id="fxCanvas" aria-hidden="true"></canvas>
@@ -75,7 +75,7 @@
       </div>
     </details>
   </header>
-  <div class="status"><span class="turn" id="turnInfo"></span><span>山札 <b id="deckN">0</b> 枚</span></div>
+  <div class="status"><span class="turn" id="turnInfo"></span><span class="clock" id="clock" hidden></span><span>山札 <b id="deckN">0</b> 枚</span></div>
 
   <div class="scene" id="scene"><div class="fitbox" id="fitbox">
     <div class="table" id="table">
@@ -86,7 +86,7 @@
       <div class="mid" aria-hidden="true">
         <div class="pile"><div class="stack" id="deckStack"></div><span>山札</span></div>
         <div class="axis">∇</div>
-        <div class="pile"><div class="stack grave" id="graveStack"></div><span>捨て札</span></div>
+        <div class="pile"><div class="stack grave" id="graveStack"></div><span>捨て札 <span class="cnt" id="graveN">0</span></span></div>
       </div>
       <section class="side mine" id="sideYou">
         <div class="sh">あなたの場<span class="dim">次元 <b id="dimYou">3</b></span></div>
@@ -122,8 +122,8 @@
 
 
 </div>
-<script src="js/engine.js?v=20261030c"></script>
-<script src="js/game.js?v=20261030c"></script>
-<script src="js/ui.js?v=20261030c"></script>
+<script src="js/engine.js?v=20261030e"></script>
+<script src="js/game.js?v=20261030e"></script>
+<script src="js/ui.js?v=20261030e"></script>
 </body>
 </html>
