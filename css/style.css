@@ -253,4 +253,41 @@ sup .fr,sub .fr{font-size:.9em;margin:0 .04em;vertical-align:.5em}
 .rt>.rad{border-top:max(1px,.06em) solid currentColor;padding:.04em .12em 0 .08em;line-height:1.15;margin-top:.12em}
 .bz .fr,.calc .fr{font-size:.82em}
 .calc .ln{line-height:1.9}
+/* ---- multiplayer sides ---- */
+.opps{display:grid;grid-template-columns:repeat(var(--n,1),minmax(0,1fr));gap:8px;transform-style:preserve-3d}
+@media (max-width:560px){.opps.n3{grid-template-columns:1fr}}
+.side .pname{max-width:9em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.side .tag{font-size:10px;font-weight:700;padding:1px 6px;border-radius:99px;background:var(--soft);color:var(--muted)}
+.side.turn{box-shadow:0 0 0 2px var(--basis),0 0 18px color-mix(in srgb,var(--basis) 45%,transparent)}
+.side.turn .pname::after{content:" ◀";color:var(--basis)}
+.side.out{opacity:.55;filter:grayscale(.7)}
+.side.out .tag.outtag{background:var(--gone);color:var(--card)}
+.table .opps .side .bz{font-size:clamp(16px,2vh,24px)}
+/* ---- menu: name, rules, lobby, quiz ---- */
+.mname{display:flex;flex-direction:column;gap:4px;text-align:left;font-size:12px;color:var(--muted);font-weight:700}
+.mname input,.rulebox select{font:inherit;font-size:16px;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.mcard.wide{width:min(600px,100%);max-height:calc(100dvh - 32px);overflow-y:auto}
+.rulebox{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center;text-align:left;font-size:13px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px}
+.rulebox label{font-weight:700;color:var(--muted);white-space:nowrap}
+.rulebox select:disabled{opacity:1;color:var(--ink);background:transparent;border-color:transparent;-webkit-appearance:none;appearance:none;padding-left:0}
+.btn.big{font-size:16px;padding:10px 16px}
+.lobtop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;text-align:left}
+.lobtop .code{font-size:30px}
+.seats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px}
+.seat{border:1px solid var(--line);border-radius:10px;padding:8px 10px;text-align:left;font-size:13px;background:var(--card);display:flex;flex-direction:column;gap:1px}
+.seat b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seat small{color:var(--muted);font-size:11px}
+.seat.me{border-color:var(--basis);box-shadow:0 0 0 1px var(--basis)}
+.seat.cpu{border-style:dashed}
+.seat.empty{border-style:dashed;color:var(--muted);background:transparent}
+.quiz{border-top:1px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px;text-align:left}
+.quiz .qh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12px;color:var(--muted)}
+.quiz .qh b{font-size:14px;color:var(--ink)}
+.quiz .qq{font-family:var(--math);font-size:22px;text-align:center;padding:10px;background:var(--paper);border-radius:10px;overflow-x:auto}
+.quiz .qa{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.quiz .qa button{appearance:none;font:inherit;font-family:var(--math);font-size:17px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 6px;cursor:pointer;min-height:52px;overflow-x:auto}
+.quiz .qa button.ok{background:color-mix(in srgb,var(--basis) 22%,var(--card));border-color:var(--basis)}
+.quiz .qa button.ng{background:color-mix(in srgb,var(--gone) 18%,var(--card));border-color:var(--gone)}
+.quiz .qf{font-size:13px;min-height:1.4em}
+.quiz .qf.ok{color:var(--basis);font-weight:700}.quiz .qf.ng{color:var(--gone);font-weight:700}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
